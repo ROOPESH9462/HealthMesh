@@ -36,7 +36,11 @@ let lastLoggedErrorTime = 0;
 redisConnection.on('error', (err: any) => {
   const now = Date.now();
   if (now - lastLoggedErrorTime > 60000) {
-    logger.error('BullMQ IORedis connection error:', err.message || err);
+    if (err.code === 'ECONNREFUSED' || err.message?.includes('ECONNREFUSED')) {
+      logger.warn('BullMQ Redis queue is offline. Background worker tasks are suspended.');
+    } else {
+      logger.error('BullMQ IORedis connection error:', err.message || err);
+    }
     lastLoggedErrorTime = now;
   }
 });
