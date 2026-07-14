@@ -19,7 +19,7 @@ services:
         generateValue: true
       - key: CLIENT_URL
         fromService:
-          type: static
+          type: web
           name: healthmesh-frontend
           property: url
       - key: STRIPE_SECRET_KEY
@@ -36,11 +36,12 @@ services:
         sync: false
 
   # 2. React Frontend SPA (Static Site)
-  - type: static
+  - type: web
     name: healthmesh-frontend
+    runtime: static
     plan: free
     buildCommand: npm install && npm run build:frontend
-    publishPath: apps/frontend/dist
+    staticPublishPath: apps/frontend/dist
     envVars:
       - key: VITE_API_URL
         fromService:
