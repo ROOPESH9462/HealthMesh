@@ -18,10 +18,7 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CLIENT_URL
-        fromService:
-          type: web
-          name: healthmesh-frontend
-          property: url
+        sync: false # Paste frontend public URL (e.g., https://healthmesh-frontend.onrender.com)
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
@@ -44,7 +41,4 @@ services:
     staticPublishPath: apps/frontend/dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: healthmesh-backend
-          property: url
+        sync: false # Paste backend public URL (e.g., https://healthmesh-backend.onrender.com)
