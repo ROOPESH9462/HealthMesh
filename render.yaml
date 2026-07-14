@@ -1,0 +1,49 @@
+services:
+  # 1. Express Backend Gateway (Web Service)
+  - type: web
+    name: healthmesh-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build:backend
+    startCommand: npm run start --workspace=apps/backend
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # Set in the Render dashboard env variables
+      - key: JWT_ACCESS_SECRET
+        generateValue: true # Generates a secure random secret key automatically
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        fromService:
+          type: static
+          name: healthmesh-frontend
+          property: url
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MAILTRAP_TOKEN
+        sync: false
+
+  # 2. React Frontend SPA (Static Site)
+  - type: static
+    name: healthmesh-frontend
+    plan: free
+    buildCommand: npm install && npm run build:frontend
+    publishPath: apps/frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: healthmesh-backend
+          property: url
