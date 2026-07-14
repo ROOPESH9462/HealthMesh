@@ -19,8 +19,9 @@
     "dev:backend": "npm run dev --workspace=apps/backend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:ai": "cd apps/ai-service && .venv\\Scripts\\activate && python run.py",
-    "build:backend": "npm run build --workspace=apps/backend",
-    "build:frontend": "npm run build --workspace=apps/frontend",
+    "build:packages": "npm run build --workspace=packages/shared-types --workspace=packages/shared-utils --workspace=packages/api-contracts",
+    "build:backend": "npm run build:packages && npm run build --workspace=apps/backend",
+    "build:frontend": "npm run build:packages && npm run build --workspace=apps/frontend",
     "test:backend": "npm run test --workspace=apps/backend",
     "test:frontend": "npm run test --workspace=apps/frontend"
   },
