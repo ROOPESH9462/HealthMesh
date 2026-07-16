@@ -32,7 +32,9 @@ export class AppError extends Error {
     this.isOperational = true;
     this.errorCode = errorCode;
 
-    Error.captureStackTrace(this, this.constructor);
+    if (typeof (Error as any).captureStackTrace === 'function') {
+      (Error as any).captureStackTrace(this, this.constructor);
+    }
   }
 }
 
