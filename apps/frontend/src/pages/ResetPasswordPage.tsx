@@ -61,7 +61,7 @@ const ResetPasswordPage: React.FC = () => {
               <Activity className="w-6 h-6 text-white" />
             </div>
             <span className="font-bold text-xl tracking-wide bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
-              Aegis Health
+              HealthMesh
             </span>
           </Link>
           <h2 className="text-xl font-bold tracking-tight text-white">Create New Password</h2>

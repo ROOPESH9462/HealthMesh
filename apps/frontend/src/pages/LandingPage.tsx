@@ -29,7 +29,7 @@ const LandingPage: React.FC = () => {
               <Activity className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-xl tracking-wide bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
-              Aegis Health
+              HealthMesh
             </span>
           </div>
 
@@ -71,7 +71,7 @@ const LandingPage: React.FC = () => {
 
           {/* Description */}
           <p className="text-md md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Aegis Health combines secure, modular hospital workflows with AI diagnostic decision support, 
+            HealthMesh combines secure, modular hospital workflows with AI diagnostic decision support, 
             smart prescription OCR scanning, WebRTC video consultations, and real-time alerts.
           </p>
 
@@ -183,9 +183,12 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-sky-500" />
-            <span className="font-semibold text-slate-400">Aegis Healthcare Management</span>
+            <span className="font-semibold text-slate-400">HealthMesh Management</span>
           </div>
-          <p>© 2026 Aegis Health Inc. All rights reserved. For clinical placement demonstration.</p>
+          <div className="flex flex-col items-center md:items-end gap-1">
+            <p>© 2026 HealthMesh Inc. All rights reserved. For clinical placement demonstration.</p>
+            <p className="text-[10px] text-slate-600 font-mono tracking-wider">Created by roopesh</p>
+          </div>
         </div>
       </footer>
     </div>

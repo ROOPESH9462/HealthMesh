@@ -100,7 +100,7 @@ const DashboardLayout: React.FC = () => {
             <Activity className="w-5 h-5 text-white" />
           </div>
           <span className="font-bold text-lg tracking-wide bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
-            Aegis Health
+            HealthMesh
           </span>
         </div>
 
@@ -179,7 +179,7 @@ const DashboardLayout: React.FC = () => {
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500">
                 <Activity className="w-4.5 h-4.5 text-white" />
               </div>
-              <span className="font-bold text-lg">Aegis Health</span>
+              <span className="font-bold text-lg">HealthMesh</span>
             </div>
 
             {/* Links */}
