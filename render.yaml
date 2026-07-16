@@ -4,7 +4,7 @@ services:
     name: healthmesh-backend
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build:backend
+    buildCommand: npm install --include=dev && npm run build:backend
     startCommand: npm run start --workspace=apps/backend
     envVars:
       - key: PORT
@@ -36,7 +36,7 @@ services:
   - type: web
     name: healthmesh-frontend
     runtime: static
-    buildCommand: npm install && npm run build:frontend
+    buildCommand: npm install --include=dev && npm run build:frontend
     staticPublishPath: apps/frontend/dist
     envVars:
       - key: VITE_API_URL
