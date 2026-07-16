@@ -186,7 +186,6 @@ const LandingPage: React.FC = () => {
             <span className="font-semibold text-slate-400">HealthMesh Management</span>
           </div>
           <div className="flex flex-col items-center md:items-end gap-1">
-            <p>© 2026 HealthMesh Inc. All rights reserved. For clinical placement demonstration.</p>
             <p className="text-[10px] text-slate-600 font-mono tracking-wider">Created by roopesh</p>
           </div>
         </div>
