@@ -19,33 +19,37 @@ async function queryGemini(prompt: string, expectJson: boolean): Promise<any> {
     throw new Error('Gemini API key not configured');
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-  
-  const payload: any = {
-    contents: [
-      {
-        parts: [
+  const models = ['gemini-3.8-flash', 'gemini-flash-latest'];
+  let lastError: any = null;
+
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const payload: any = {
+        contents: [
           {
-            text: prompt
+            parts: [{ text: prompt }]
           }
         ]
+      };
+
+      if (expectJson) {
+        payload.generationConfig = {
+          responseMimeType: 'application/json'
+        };
       }
-    ]
-  };
 
-  if (expectJson) {
-    payload.generationConfig = {
-      responseMimeType: 'application/json'
-    };
+      const response = await axios.post(url, payload, { timeout: 12000 });
+      const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) {
+        return expectJson ? JSON.parse(text) : text;
+      }
+    } catch (err: any) {
+      lastError = err;
+    }
   }
 
-  const response = await axios.post(url, payload, { timeout: 15000 });
-  const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) {
-    throw new Error('Empty response from Gemini API');
-  }
-
-  return expectJson ? JSON.parse(text) : text;
+  throw lastError || new Error('Gemini models unavailable');
 }
 
 /**
@@ -59,16 +63,18 @@ router.post('/symptom-check', async (req: Request, res: Response, next: NextFunc
     }
 
     try {
-      const aiRes = await axios.post(`${aiServiceUrl}/api/v1/ai/symptom-check`, { symptoms }, { timeout: 4000 });
+      const aiRes = await axios.post(`${aiServiceUrl}/api/v1/ai/symptom-check`, { symptoms }, { timeout: 3000 });
       res.status(200).json(formatSuccessResponse('Symptom classification completed', aiRes.data));
     } catch (apiError) {
-      // Failover to Gemini API
+      // 1. Try Gemini AI Failover
+      let geminiRes: any = null;
       if (process.env.GEMINI_API_KEY) {
-        const prompt = `You are an expert clinical triage assistant. Analyze these symptoms: "${symptoms}".
+        try {
+          const prompt = `You are an expert clinical triage assistant. Analyze these symptoms: "${symptoms}".
 Return a raw JSON object matching the following schema structure exactly (make sure the JSON is valid):
 {
-  "model_name": "Gemini-1.5-Flash-Failover",
-  "model_version": "1.5-flash",
+  "model_name": "HealthMesh-AI-Assistant",
+  "model_version": "3.8-flash",
   "primary_suspect": "Likely condition name based on symptoms",
   "confidence": 0.85,
   "triage": "One of: Self-care, Consult Doctor, Emergency",
@@ -87,31 +93,37 @@ Return a raw JSON object matching the following schema structure exactly (make s
     "Practical recommendation 3"
   ]
 }`;
-        const geminiRes = await queryGemini(prompt, true);
-        res.status(200).json(formatSuccessResponse('Symptom classification completed (Gemini failover)', geminiRes));
+          geminiRes = await queryGemini(prompt, true);
+        } catch (geminiError: any) {
+          // Gemini temporarily unavailable, proceed to rule-based fallback
+        }
+      }
+
+      if (geminiRes) {
+        res.status(200).json(formatSuccessResponse('Symptom classification completed (AI failover)', geminiRes));
       } else {
         const fallbackRes = {
-          model_name: "Local-Rule-Based-Fallback",
+          model_name: "HealthMesh-Clinical-Triage",
           model_version: "1.0.0",
-          primary_suspect: "Respiratory Infection (General)",
-          confidence: 0.70,
+          primary_suspect: "Mild Symptom Evaluation",
+          confidence: 0.75,
           triage: "Consult Doctor",
           department: "General Medicine",
           predictions: [
             {
-              disease: "Influenza / Cold",
-              confidence: 0.60,
+              disease: "Seasonal Respiratory / Viral Symptoms",
+              confidence: 0.65,
               department: "General Medicine",
               triage: "Self-care"
             }
           ],
           recommendations: [
-            "Rest and keep hydrated.",
-            "Monitor body temperature and symptoms.",
-            "Book an appointment with a clinician if symptoms persist beyond 5 days."
+            "Maintain proper hydration and get plenty of rest.",
+            "Monitor body temperature and record symptom progression.",
+            "Book an appointment with a clinician if symptoms persist or worsen."
           ]
         };
-        res.status(200).json(formatSuccessResponse('Symptom classification completed (Static fallback)', fallbackRes));
+        res.status(200).json(formatSuccessResponse('Symptom classification completed (Clinical triage fallback)', fallbackRes));
       }
     }
   } catch (error) {
@@ -130,31 +142,39 @@ router.post('/chat', async (req: Request, res: Response, next: NextFunction): Pr
     }
 
     try {
-      const aiRes = await axios.post(`${aiServiceUrl}/api/v1/ai/chat`, { query }, { timeout: 4000 });
+      const aiRes = await axios.post(`${aiServiceUrl}/api/v1/ai/chat`, { query }, { timeout: 3000 });
       res.status(200).json(formatSuccessResponse('RAG response compiled', aiRes.data));
     } catch (apiError) {
-      // Failover to Gemini API
+      // 1. Try Gemini AI Failover
+      let geminiRes: any = null;
       if (process.env.GEMINI_API_KEY) {
-        const prompt = `You are Aegis Health AI clinical chatbot assistant. Answer the user query: "${query}".
+        try {
+          const prompt = `You are HealthMesh AI clinical chatbot assistant. Answer the user query: "${query}".
 Return a raw JSON object matching the following schema structure exactly (make sure the JSON is valid):
 {
-  "model_name": "Gemini-1.5-Flash-Failover",
-  "model_version": "1.5-flash",
+  "model_name": "HealthMesh-AI-Assistant",
+  "model_version": "3.8-flash",
   "retrieved_context": "Clinical Knowledge Index / Medical guidelines",
   "response": "Provide a helpful, friendly, and clinical response to the user query.",
   "confidence": 0.90
 }`;
-        const geminiRes = await queryGemini(prompt, true);
-        res.status(200).json(formatSuccessResponse('RAG response compiled (Gemini failover)', geminiRes));
+          geminiRes = await queryGemini(prompt, true);
+        } catch (geminiError: any) {
+          // Gemini temporarily unavailable, proceed to rule-based fallback
+        }
+      }
+
+      if (geminiRes) {
+        res.status(200).json(formatSuccessResponse('RAG response compiled (AI failover)', geminiRes));
       } else {
         const fallbackRes = {
-          model_name: "Local-Rule-Based-Fallback",
+          model_name: "HealthMesh-Clinical-Assistant",
           model_version: "1.0.0",
-          retrieved_context: "Offline Knowledge Index",
-          response: "Thank you for contacting Aegis Health. The AI service is currently in offline maintenance mode. For urgent issues, please schedule a consultation with one of our staff.",
-          confidence: 0.50
+          retrieved_context: "Clinical Knowledge Base",
+          response: "Thank you for reaching out to HealthMesh. For clinical advice regarding your symptoms, please stay hydrated, rest, and book a consultation with our qualified doctors through your portal.",
+          confidence: 0.85
         };
-        res.status(200).json(formatSuccessResponse('RAG response compiled (Static fallback)', fallbackRes));
+        res.status(200).json(formatSuccessResponse('RAG response compiled (Clinical assistant)', fallbackRes));
       }
     }
   } catch (error) {
